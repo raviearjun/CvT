@@ -1,6 +1,15 @@
 from functools import partial
 from itertools import repeat
-from torch._six import container_abcs
+try:
+    # PyTorch 1.8+ compatibility
+    from collections.abc import Iterable
+except ImportError:
+    # PyTorch < 1.8 fallback
+    try:
+        from torch._six import container_abcs
+        Iterable = container_abcs.Iterable
+    except ImportError:
+        from collections.abc import Iterable
 
 import logging
 import os
@@ -22,7 +31,7 @@ from .registry import register_model
 # From PyTorch internals
 def _ntuple(n):
     def parse(x):
-        if isinstance(x, container_abcs.Iterable):
+        if isinstance(x, Iterable):
             return x
         return tuple(repeat(x, n))
 
