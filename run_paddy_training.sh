@@ -19,7 +19,7 @@ cd $WORKING_DIR
 
 # Install dependencies if needed
 echo "📦 Installing dependencies..."
-pip install -r requirements.txt
+pip install -r requirements_colab_minimal.txt
 
 # Check if dataset exists (from manual upload)
 echo "🔍 Checking for uploaded dataset..."
