@@ -7,7 +7,7 @@ import time
 import torch
 
 from timm.data import Mixup
-from torch.cuda.amp import autocast
+from torch.amp import autocast
 
 from core.evaluate import accuracy
 from utils.comm import comm
@@ -44,7 +44,7 @@ def train_one_epoch(config, train_loader, model, criterion, optimizer, epoch,
         if mixup_fn:
             x, y = mixup_fn(x, y)
 
-        with autocast(enabled=config.AMP.ENABLED):
+        with autocast('cuda', enabled=config.AMP.ENABLED):
             if config.AMP.ENABLED and config.AMP.MEMORY_FORMAT == 'nwhc':
                 x = x.contiguous(memory_format=torch.channels_last)
                 y = y.contiguous(memory_format=torch.channels_last)

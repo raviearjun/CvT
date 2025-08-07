@@ -116,16 +116,50 @@ echo "  - training.log: Console output"
 
 # Test on final test set
 echo "\n🧪 Testing on final test set..."
-python tools/final_test.py \
-    --cfg experiments/imagenet/cvt/cvt-21-224x224_paddy_dataset.yaml \
-    --model-file /content/output/best.pth \
-    --dataset-type test
+MODEL_DIR="/content/output/imagenet/cvt-21-224x224_paddy_dataset"
+if [ -f "$MODEL_DIR/model_best.pth" ]; then
+    python tools/final_test.py \
+        --cfg experiments/imagenet/cvt/cvt-21-224x224_paddy_dataset.yaml \
+        --model-file "$MODEL_DIR/model_best.pth" \
+        --dataset-type test
+elif [ -f "$MODEL_DIR/best.pth" ]; then
+    python tools/final_test.py \
+        --cfg experiments/imagenet/cvt/cvt-21-224x224_paddy_dataset.yaml \
+        --model-file "$MODEL_DIR/best.pth" \
+        --dataset-type test
+elif [ -f "/content/output/model_best.pth" ]; then
+    python tools/final_test.py \
+        --cfg experiments/imagenet/cvt/cvt-21-224x224_paddy_dataset.yaml \
+        --model-file /content/output/model_best.pth \
+        --dataset-type test
+else
+    echo "❌ No trained model found for testing"
+    echo "Looking for model files in:"
+    echo "  - $MODEL_DIR/"
+    echo "  - /content/output/"
+    ls -la "$MODEL_DIR/" 2>/dev/null || echo "Directory not found: $MODEL_DIR/"
+    ls -la /content/output/ 2>/dev/null || echo "Directory not found: /content/output/"
+fi
 
 echo "\n🧪 Testing on validation set for comparison..."
-python tools/final_test.py \
-    --cfg experiments/imagenet/cvt/cvt-21-224x224_paddy_dataset.yaml \
-    --model-file /content/output/best.pth \
-    --dataset-type val
+if [ -f "$MODEL_DIR/model_best.pth" ]; then
+    python tools/final_test.py \
+        --cfg experiments/imagenet/cvt/cvt-21-224x224_paddy_dataset.yaml \
+        --model-file "$MODEL_DIR/model_best.pth" \
+        --dataset-type val
+elif [ -f "$MODEL_DIR/best.pth" ]; then
+    python tools/final_test.py \
+        --cfg experiments/imagenet/cvt/cvt-21-224x224_paddy_dataset.yaml \
+        --model-file "$MODEL_DIR/best.pth" \
+        --dataset-type val
+elif [ -f "/content/output/model_best.pth" ]; then
+    python tools/final_test.py \
+        --cfg experiments/imagenet/cvt/cvt-21-224x224_paddy_dataset.yaml \
+        --model-file /content/output/model_best.pth \
+        --dataset-type val
+else
+    echo "❌ No trained model found for testing"
+fi
 
 # Create downloadable archive
 echo "\n� Creating downloadable archive..."
