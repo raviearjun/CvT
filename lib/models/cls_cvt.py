@@ -562,10 +562,18 @@ class ConvolutionalVisionTransformer(nn.Module):
             pretrained_dict = torch.load(pretrained, map_location='cpu')
             logging.info(f'=> loading pretrained model {pretrained}')
             model_dict = self.state_dict()
-            pretrained_dict = {
-                k: v for k, v in pretrained_dict.items()
-                if k in model_dict.keys()
-            }
+            
+            # Filter out head layers if size mismatch (for fine-tuning)
+            filtered_dict = {}
+            for k, v in pretrained_dict.items():
+                if k in model_dict.keys():
+                    if v.size() == model_dict[k].size():
+                        filtered_dict[k] = v
+                    else:
+                        if verbose:
+                            logging.info(f'=> skipping {k} due to size mismatch: {v.size()} vs {model_dict[k].size()}')
+                            
+            pretrained_dict = filtered_dict
             need_init_state_dict = {}
             for k, v in pretrained_dict.items():
                 need_init = (
@@ -607,7 +615,22 @@ class ConvolutionalVisionTransformer(nn.Module):
                         )
 
                     need_init_state_dict[k] = v
-            self.load_state_dict(need_init_state_dict, strict=False)
+            
+            try:
+                self.load_state_dict(need_init_state_dict, strict=False)
+                logging.info(f'=> loaded pretrained weights successfully')
+            except RuntimeError as e:
+                logging.warning(f'=> failed to load some pretrained weights: {e}')
+                # Try loading without strict mode and without problematic layers
+                safe_dict = {}
+                for k, v in need_init_state_dict.items():
+                    if not k.startswith('head.'):  # Skip classification head
+                        safe_dict[k] = v
+                try:
+                    self.load_state_dict(safe_dict, strict=False)
+                    logging.info(f'=> loaded pretrained weights (excluding head layer)')
+                except Exception as e2:
+                    logging.error(f'=> failed to load pretrained weights: {e2}')
 
     @torch.jit.ignore
     def no_weight_decay(self):
