@@ -23,7 +23,14 @@ import torch.nn.functional as F
 from einops import rearrange
 from einops.layers.torch import Rearrange
 
-from timm.models.layers import DropPath, trunc_normal_
+# Handle TIMM imports with graceful fallback
+try:
+    from timm.layers import DropPath, trunc_normal_
+except ImportError:
+    try:
+        from timm.models.layers import DropPath, trunc_normal_
+    except ImportError:
+        raise ImportError("Could not import DropPath and trunc_normal_ from timm")
 
 from .registry import register_model
 
@@ -563,7 +570,7 @@ class ConvolutionalVisionTransformer(nn.Module):
             for k, v in pretrained_dict.items():
                 need_init = (
                         k.split('.')[0] in pretrained_layers
-                        or pretrained_layers[0] is '*'
+                        or pretrained_layers[0] == '*'
                 )
                 if need_init:
                     if verbose:

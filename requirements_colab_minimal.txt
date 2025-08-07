@@ -14,6 +14,7 @@ timm>=0.9.0
 einops
 json_tricks
 ptflops
+tensorwatch
 
 # Skip these - use Colab built-ins:
 # torch (pre-installed in Colab)
