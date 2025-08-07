@@ -1,12 +1,33 @@
 # CvT Fine-tuning untuk Klasifikasi Penyakit Tanaman Padi
 
-Panduan lengkap untuk melakukan fine-tuning model CvT-21 untuk klasifikasi penyakit tanaman padi dengan 10 kelas.
+Panduan lengkap untuk melakukan fine-tuning model CvT-21 untuk klasifikasi penyakit tanaman padi dengan 10 kelas. Repository ini telah dikonfigurasi untuk mendukung **train-validation-test split** yang terpisah.
 
 ## Setup di Google Colab
 
 ### 1. Persiapan Dataset
 
-Struktur dataset harus dalam format ImageFolder dan diletakkan di root repo:
+Struktur dataset harus dalam format ImageFolder dengan **3 direktori terpisah**:
+
+```
+CvT/
+├── paddy_disease_dataset/
+│   ├── train/ (80% data - untuk training)
+│   │   ├── bacterial_leaf_blight/
+│   │   ├── bacterial_leaf_streak/
+│   │   ├── bacterial_panicle_blight/
+│   │   ├── blast/
+│   │   ├── brown_spot/
+│   │   ├── dead_heart/
+│   │   ├── downy_mildew/
+│   │   ├── hispa/
+│   │   ├── normal/
+│   │   └── tungro/
+│   ├── val/ (10% data - untuk validation selama training)
+│   │   ├── [same 10 classes]
+│   └── test/ (10% data - untuk final evaluation)
+│       ├── [same 10 classes]
+└── CvT-21-224x224-IN-1k.pth
+```
 
 ```
 CvT/
@@ -41,6 +62,8 @@ CvT/
 **Download dan setup manual**:
 
 1. **Dataset**: Download dataset Anda dan extract ke `/content/CvT/paddy_disease_dataset/`
+   - **Pastikan ada 3 folder: `train/`, `val/`, `test/`**
+   - **Rasio: Train 80% : Val 10% : Test 10%**
 2. **Pretrained weights**: Download `CvT-21-224x224-IN-1k.pth` dan letakkan di `/content/CvT/`
 
 **Cara setup**:
@@ -58,7 +81,7 @@ CvT/
 
 ## Konfigurasi Training
 
-File konfigurasi: `experiments/imagenet/cvt/cvt-21-224x224.yaml` (sudah diedit untuk fine-tuning)
+File konfigurasi: `experiments/imagenet/cvt/cvt-21-224x224_paddy_dataset.yaml` (dikonfigurasi khusus untuk paddy dataset)
 
 ### Parameter Utama:
 
@@ -104,15 +127,35 @@ Setelah training selesai, file berikut akan tersedia di `/content/output/`:
 
 ## Evaluasi Model
 
-### 1. Evaluasi pada Test Set
+### 1. Evaluasi pada Validation Set (selama training)
+
+Training otomatis mengevaluasi pada validation set setiap epoch. Hasil terbaik disimpan sebagai `best.pth`.
+
+### 2. Evaluasi pada Test Set (untuk hasil final)
+
+Setelah training selesai, evaluasi model pada test set yang belum pernah dilihat:
 
 ```bash
-python tools/test.py \
-    --cfg experiments/imagenet/cvt/cvt-21-224x224.yaml \
-    --model-file /content/output/best.pth
+# Evaluasi menggunakan test set
+python tools/final_test.py \
+    --cfg experiments/imagenet/cvt/cvt-21-224x224_paddy_dataset.yaml \
+    --model-file /content/output/best.pth \
+    --dataset-type test
+
+# Atau bandingkan dengan validation set
+python tools/final_test.py \
+    --cfg experiments/imagenet/cvt/cvt-21-224x224_paddy_dataset.yaml \
+    --model-file /content/output/best.pth \
+    --dataset-type val
 ```
 
-### 2. Inference pada Gambar Baru
+**Catatan Penting:**
+
+- Test set hanya digunakan untuk evaluasi final, bukan untuk tuning hyperparameter
+- Validation set digunakan untuk monitoring training dan early stopping
+- Train set (80%) untuk training, val set (10%) untuk validation, test set (10%) untuk evaluasi final
+
+### 3. Inference pada Gambar Baru
 
 Untuk inference pada gambar tunggal, Anda perlu memodifikasi `tools/test.py` atau membuat script terpisah.
 
@@ -121,7 +164,7 @@ Untuk inference pada gambar tunggal, Anda perlu memodifikasi `tools/test.py` ata
 ### 1. Jika Memory Error:
 
 - Kurangi batch size dari 32 ke 16 atau 8
-- Edit `TRAIN.BATCH_SIZE_PER_GPU` di file `experiments/imagenet/cvt/cvt-21-224x224.yaml`
+- Edit `TRAIN.BATCH_SIZE_PER_GPU` di file `experiments/imagenet/cvt/cvt-21-224x224_paddy_dataset.yaml`
 
 ### 2. Jika Training Lambat:
 
@@ -138,7 +181,7 @@ Untuk inference pada gambar tunggal, Anda perlu memodifikasi `tools/test.py` ata
 ### Error: "CUDA out of memory"
 
 ```yaml
-# Di experiments/imagenet/cvt/cvt-21-224x224.yaml, ubah:
+# Di experiments/imagenet/cvt/cvt-21-224x224_paddy_dataset.yaml, ubah:
 TRAIN:
   BATCH_SIZE_PER_GPU: 16 # atau 8
 ```
@@ -181,7 +224,7 @@ Hasil training akan otomatis dibuat dalam format archive yang bisa didownload:
 
 ### 1. Mengganti Jumlah Kelas
 
-Edit di `experiments/imagenet/cvt/cvt-21-224x224.yaml`:
+Edit di `experiments/imagenet/cvt/cvt-21-224x224_paddy_dataset.yaml`:
 
 ```yaml
 MODEL:

@@ -14,10 +14,10 @@ from .transformas import build_transforms
 from .samplers import RASampler
 
 
-def build_dataset(cfg, is_train):
+def build_dataset(cfg, is_train, dataset_type='default'):
     dataset = None
     if 'imagenet' in cfg.DATASET.DATASET:
-        dataset = _build_imagenet_dataset(cfg, is_train)
+        dataset = _build_imagenet_dataset(cfg, is_train, dataset_type)
     else:
         raise ValueError('Unkown dataset: {}'.format(cfg.DATASET.DATASET))
     return dataset
@@ -38,10 +38,17 @@ def _build_image_folder_dataset(cfg, is_train):
     return dataset
 
 
-def _build_imagenet_dataset(cfg, is_train):
+def _build_imagenet_dataset(cfg, is_train, dataset_type='default'):
     transforms = build_transforms(cfg, is_train)
 
-    dataset_name = cfg.DATASET.TRAIN_SET if is_train else cfg.DATASET.TEST_SET
+    # Determine which dataset to use
+    if is_train:
+        dataset_name = cfg.DATASET.TRAIN_SET
+    elif dataset_type == 'val':
+        dataset_name = getattr(cfg.DATASET, 'VAL_SET', cfg.DATASET.TEST_SET)
+    else:  # test
+        dataset_name = cfg.DATASET.TEST_SET
+        
     dataset = datasets.ImageFolder(
         os.path.join(cfg.DATASET.ROOT, dataset_name), transforms
     )
@@ -49,7 +56,7 @@ def _build_imagenet_dataset(cfg, is_train):
     return dataset
 
 
-def build_dataloader(cfg, is_train=True, distributed=False):
+def build_dataloader(cfg, is_train=True, distributed=False, dataset_type='default'):
     if is_train:
         batch_size_per_gpu = cfg.TRAIN.BATCH_SIZE_PER_GPU
         shuffle = True
@@ -57,7 +64,7 @@ def build_dataloader(cfg, is_train=True, distributed=False):
         batch_size_per_gpu = cfg.TEST.BATCH_SIZE_PER_GPU
         shuffle = False
 
-    dataset = build_dataset(cfg, is_train)
+    dataset = build_dataset(cfg, is_train, dataset_type)
 
     if distributed:
         if is_train and cfg.DATASET.SAMPLER == 'repeated_aug':

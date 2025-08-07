@@ -104,7 +104,7 @@ def main():
     )
 
     train_loader = build_dataloader(config, True, args.distributed)
-    valid_loader = build_dataloader(config, False, args.distributed)
+    valid_loader = build_dataloader(config, False, args.distributed, dataset_type='val')
 
     if args.distributed:
         model = torch.nn.parallel.DistributedDataParallel(

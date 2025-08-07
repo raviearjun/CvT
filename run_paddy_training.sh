@@ -36,26 +36,35 @@ fi
 # Check if dataset is populated
 train_classes=$(find "$WORKING_DIR/paddy_disease_dataset/train" -maxdepth 1 -type d 2>/dev/null | wc -l)
 val_classes=$(find "$WORKING_DIR/paddy_disease_dataset/val" -maxdepth 1 -type d 2>/dev/null | wc -l)
+test_classes=$(find "$WORKING_DIR/paddy_disease_dataset/test" -maxdepth 1 -type d 2>/dev/null | wc -l)
 
-if [ "$train_classes" -le 1 ] || [ "$val_classes" -le 1 ]; then
-    echo "❌ Dataset appears to be empty!"
+if [ "$train_classes" -le 1 ] || [ "$val_classes" -le 1 ] || [ "$test_classes" -le 1 ]; then
+    echo "❌ Dataset appears to be incomplete!"
     echo "   Please populate the following directories with your paddy disease images:"
-    echo "   - $WORKING_DIR/paddy_disease_dataset/train/"
-    echo "   - $WORKING_DIR/paddy_disease_dataset/val/"
+    echo "   - $WORKING_DIR/paddy_disease_dataset/train/ (found: $((train_classes-1)) classes)"
+    echo "   - $WORKING_DIR/paddy_disease_dataset/val/ (found: $((val_classes-1)) classes)"
+    echo "   - $WORKING_DIR/paddy_disease_dataset/test/ (found: $((test_classes-1)) classes)"
     echo ""
     echo "Expected structure:"
     echo "paddy_disease_dataset/"
-    echo "├── train/"
+    echo "├── train/ (80% of data)"
     echo "│   ├── bacterial_leaf_blight/"
     echo "│   ├── bacterial_leaf_streak/"
     echo "│   └── ... (other disease classes)"
-    echo "└── val/"
+    echo "├── val/ (10% of data)"
+    echo "│   ├── bacterial_leaf_blight/"
+    echo "│   ├── bacterial_leaf_streak/"
+    echo "│   └── ... (other disease classes)"
+    echo "└── test/ (10% of data)"
     echo "    ├── bacterial_leaf_blight/"
     echo "    ├── bacterial_leaf_streak/"
     echo "    └── ... (other disease classes)"
     exit 1
 else
-    echo "✅ Dataset found with $((train_classes-1)) train classes and $((val_classes-1)) val classes"
+    echo "✅ Dataset found with:"
+    echo "   Train: $((train_classes-1)) classes"
+    echo "   Validation: $((val_classes-1)) classes" 
+    echo "   Test: $((test_classes-1)) classes"
 fi
 
 # Check if pretrained weights exist
@@ -77,8 +86,9 @@ mkdir -p /content/output
 echo "📊 Dataset Information:"
 echo "Train classes: $(ls $WORKING_DIR/paddy_disease_dataset/train/ | wc -l)"
 echo "Val classes: $(ls $WORKING_DIR/paddy_disease_dataset/val/ | wc -l)"
+echo "Test classes: $(ls $WORKING_DIR/paddy_disease_dataset/test/ | wc -l)"
 
-for split in train val; do
+for split in train val test; do
     echo "\n$split dataset:"
     for class_dir in $WORKING_DIR/paddy_disease_dataset/$split/*/; do
         class_name=$(basename "$class_dir")
@@ -103,6 +113,19 @@ echo "  - best.pth: Best model checkpoint"
 echo "  - latest.pth: Latest model checkpoint"
 echo "  - log.txt: Detailed training log"
 echo "  - training.log: Console output"
+
+# Test on final test set
+echo "\n🧪 Testing on final test set..."
+python tools/final_test.py \
+    --cfg experiments/imagenet/cvt/cvt-21-224x224_paddy_dataset.yaml \
+    --model-file /content/output/best.pth \
+    --dataset-type test
+
+echo "\n🧪 Testing on validation set for comparison..."
+python tools/final_test.py \
+    --cfg experiments/imagenet/cvt/cvt-21-224x224_paddy_dataset.yaml \
+    --model-file /content/output/best.pth \
+    --dataset-type val
 
 # Create downloadable archive
 echo "\n� Creating downloadable archive..."

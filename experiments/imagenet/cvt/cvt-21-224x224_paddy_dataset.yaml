@@ -55,7 +55,8 @@ DATASET:
   DATASET: "imagenet"
   DATA_FORMAT: "jpg"
   ROOT: "/content/CvT/paddy_disease_dataset/"
-  TEST_SET: "val"
+  TEST_SET: "test"
+  VAL_SET: "val"
   TRAIN_SET: "train"
   SAMPLER: default
 TEST:

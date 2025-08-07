@@ -12,7 +12,8 @@ def setup_directories():
     """Buat direktori yang diperlukan"""
     directories = [
         '/content/CvT/paddy_disease_dataset/train',
-        '/content/CvT/paddy_disease_dataset/val', 
+        '/content/CvT/paddy_disease_dataset/val',
+        '/content/CvT/paddy_disease_dataset/test',
         '/content/output'
     ]
     
@@ -33,23 +34,36 @@ def verify_dataset_exists():
     # Check if dataset is populated
     train_path = os.path.join(dataset_root, 'train')
     val_path = os.path.join(dataset_root, 'val')
+    test_path = os.path.join(dataset_root, 'test')
     
-    if not os.path.exists(train_path) or not os.path.exists(val_path):
-        print("❌ Dataset tidak lengkap! Harap isi direktori:")
-        print("   - paddy_disease_dataset/train/")
-        print("   - paddy_disease_dataset/val/")
+    missing_dirs = []
+    if not os.path.exists(train_path):
+        missing_dirs.append('train')
+    if not os.path.exists(val_path):
+        missing_dirs.append('val')
+    if not os.path.exists(test_path):
+        missing_dirs.append('test')
+        
+    if missing_dirs:
+        print(f"❌ Missing directories: {missing_dirs}")
+        print("   Harap isi direktori:")
+        print("   - paddy_disease_dataset/train/ (80% data)")
+        print("   - paddy_disease_dataset/val/ (10% data)")
+        print("   - paddy_disease_dataset/test/ (10% data)")
         return False
     
     # Check if directories have content
     train_classes = [d for d in os.listdir(train_path) if os.path.isdir(os.path.join(train_path, d))]
     val_classes = [d for d in os.listdir(val_path) if os.path.isdir(os.path.join(val_path, d))]
+    test_classes = [d for d in os.listdir(test_path) if os.path.isdir(os.path.join(test_path, d))]
     
-    if len(train_classes) == 0 or len(val_classes) == 0:
+    if len(train_classes) == 0 or len(val_classes) == 0 or len(test_classes) == 0:
         print("❌ Dataset kosong! Harap isi dengan kelas-kelas penyakit padi.")
         print("   Expected: 10 classes (9 diseases + 1 normal)")
+        print(f"   Found: train={len(train_classes)}, val={len(val_classes)}, test={len(test_classes)}")
         return False
     
-    print(f"✓ Dataset found: {len(train_classes)} train classes, {len(val_classes)} val classes")
+    print(f"✓ Dataset found: {len(train_classes)} train, {len(val_classes)} val, {len(test_classes)} test classes")
     
     # Check weights
     if not os.path.exists(weights_file):
@@ -64,7 +78,7 @@ def verify_dataset_structure():
     """Verifikasi struktur dataset"""
     dataset_root = '/content/CvT/paddy_disease_dataset'
     
-    for split in ['train', 'val']:
+    for split in ['train', 'val', 'test']:
         split_path = os.path.join(dataset_root, split)
         if not os.path.exists(split_path):
             print(f"❌ Missing {split} directory")
