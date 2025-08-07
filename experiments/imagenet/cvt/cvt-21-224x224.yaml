@@ -54,7 +54,7 @@ CUDNN:
 DATASET:
   DATASET: "imagenet"
   DATA_FORMAT: "jpg"
-  ROOT: "/content/CvT/paddy_disease_classification/"
+  ROOT: "/content/CvT/paddy_disease_dataset/"
   TEST_SET: "val"
   TRAIN_SET: "train"
   SAMPLER: default

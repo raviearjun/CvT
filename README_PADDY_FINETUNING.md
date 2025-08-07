@@ -10,7 +10,7 @@ Struktur dataset harus dalam format ImageFolder dan diletakkan di root repo:
 
 ```
 CvT/
-├── paddy_disease_classification/
+├── paddy_disease_dataset/
 │   ├── train/
 │   │   ├── bacterial_leaf_blight/
 │   │   ├── bacterial_leaf_streak/
@@ -38,16 +38,23 @@ CvT/
 
 ### 2. Persiapan File
 
-Upload ke Google Drive:
+**Download dan setup manual**:
 
-- Dataset dengan nama folder `paddy_disease_classification` dalam struktur di atas
-- File pretrained weights: `CvT-21-224x224-IN-1k.pth`
+1. **Dataset**: Download dataset Anda dan extract ke `/content/CvT/paddy_disease_dataset/`
+2. **Pretrained weights**: Download `CvT-21-224x224-IN-1k.pth` dan letakkan di `/content/CvT/`
+
+**Cara setup**:
+
+- Use file browser di Colab untuk upload/copy files
+- Atau download langsung menggunakan `wget` atau `gdown` di Colab
+- Direktori `paddy_disease_dataset/` sudah ada dalam repository (kosong)
 
 ### 3. Jalankan Training
 
 1. Buka `run_training_colab.ipynb` di Google Colab
-2. Jalankan semua cell secara berurutan
-3. Sesuaikan path dataset dan weights di cell ke-3
+2. Download dan letakkan dataset + weights di path yang benar
+3. Jalankan semua cell secara berurutan
+4. Notebook akan memverifikasi file dan memulai training
 
 ## Konfigurasi Training
 
@@ -138,14 +145,23 @@ TRAIN:
 
 ### Error: "FileNotFoundError" untuk dataset
 
-Pastikan path dataset di config benar:
+Pastikan dataset sudah diupload dengan benar:
 
-```yaml
-DATASET:
-  ROOT: "/content/CvT/paddy_disease_classification/" # Sesuaikan dengan lokasi dataset
+```bash
+# Cek apakah dataset ada
+!ls /content/paddy_disease_dataset/  # atau
+!ls /content/CvT/paddy_disease_dataset/
 ```
 
 ### Error: "Model checkpoint not found"
+
+Pastikan file pretrained weights sudah diupload:
+
+```bash
+# Cek apakah weights ada
+!ls /content/CvT-21-224x224-IN-1k.pth  # atau
+!ls /content/CvT/CvT-21-224x224-IN-1k.pth
+```
 
 Pastikan file pretrained weights ada:
 
@@ -156,8 +172,10 @@ MODEL:
 
 ## Backup Hasil
 
-Semua hasil training akan otomatis disimpan ke Google Drive di folder:
-`/content/drive/MyDrive/CvT_Paddy_Results/`
+Hasil training akan otomatis dibuat dalam format archive yang bisa didownload:
+
+- File archive: `/content/cvt_paddy_results.zip`
+- Download melalui file browser Colab atau widget download di notebook
 
 ## Kustomisasi
 

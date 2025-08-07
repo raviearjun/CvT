@@ -3,6 +3,14 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# Dataset directory (will be populated manually in Colab)
+paddy_disease_dataset/
+
+# Training outputs
+output/
+*.pth
+!CvT-21-224x224-IN-1k.pth
+
 # User-specific files
 *.rsuser
 *.suo
