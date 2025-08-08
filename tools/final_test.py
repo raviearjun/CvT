@@ -82,7 +82,7 @@ def main():
     # Test the model
     test_acc = test(
         config, test_loader, model, criterion,
-        config.OUTPUT_DIR, config.LOG_DIR,
+        config.OUTPUT_DIR, config.OUTPUT_DIR,  # Use OUTPUT_DIR for both
         distributed=False
     )
 

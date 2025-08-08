@@ -1,45 +1,32 @@
-# # PyTorch ecosystem - Use Colab pre-installed versions
-# torch>=2.0.0
-# torchvision>=0.15.0
+# PyTorch ecosystem - Use Colab pre-installed versions
+torch>=2.0.0
+torchvision>=0.15.0
 
-# # Core dependencies with compatible versions  
-# numpy>=1.21.0,<2.0.0
-# opencv-python>=4.8.0,<5.0.0
-# pyyaml>=6.0.0
+# Core dependencies with compatible versions  
+numpy>=1.21.0,<2.0.0
+opencv-python>=4.8.0,<5.0.0
+pyyaml>=6.0.0
 
-# # Configuration and utilities
-# yacs>=0.1.8
-# tensorboardX>=2.6.0
+# Configuration and utilities
+yacs>=0.1.8
+tensorboardX>=2.6.0
 
-# # Computer vision and ML (Updated for newer PyTorch)
-# timm>=0.9.0
-# scikit-learn>=1.0.0
-# pandas>=1.3.0
+# Computer vision and ML (Updated for newer PyTorch)
+timm>=0.9.0
+scikit-learn>=1.0.0
+pandas>=1.3.0
 
-# # Math and visualization
-# einops>=0.6.0
-# matplotlib>=3.3.0
-# tqdm>=4.62.0
-# Pillow>=8.0.0
+# Math and visualization
+einops>=0.6.0
+matplotlib>=3.3.0
+tqdm>=4.62.0
+Pillow>=8.0.0
 
-# # Additional dependencies for training
-# json_tricks>=3.15.0
-# # tensorwatch>=0.9.0  # Skip if problematic
-# ptflops>=0.6.0
+# Additional dependencies for training
+json_tricks>=3.15.0
+# tensorwatch>=0.9.0  # Skip if problematic
+ptflops>=0.6.0
 
-# # Protobuf compatible version
-# protobuf>=3.20.0,<5.0.0
-# protobuf==5.28.3
-
-opencv-python
-pyyaml
-json_tricks
-yacs
-scikit-learn
-tensorwatch
-tensorboardX
-pandas
-ptflops
-timm==0.3.2
-numpy==1.19.3
-einops
+# Protobuf compatible version
+protobuf>=3.20.0,<5.0.0
+protobuf==5.28.3
