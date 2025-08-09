@@ -69,15 +69,15 @@ TRAIN:
   LR: 0.0005
   IMAGE_SIZE: [224, 224]
   BEGIN_EPOCH: 0
-  END_EPOCH: 10
+  END_EPOCH: 30
   LR_SCHEDULER:
     METHOD: "timm"
     ARGS:
       sched: "cosine"
-      warmup_epochs: 2
+      warmup_epochs: 3
       warmup_lr: 0.00001
       min_lr: 0.000001
-      cooldown_epochs: 1
+      cooldown_epochs: 5
       decay_rate: 0.1
   OPTIMIZER: adamW
   WD: 0.05
