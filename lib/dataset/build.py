@@ -8,6 +8,7 @@ import os
 from timm.data import create_loader
 import torch
 import torch.utils.data
+from torch.utils.data import WeightedRandomSampler
 import torchvision.datasets as datasets
 
 from .transformas import build_transforms
@@ -36,6 +37,38 @@ def _build_image_folder_dataset(cfg, is_train):
     )
 
     return dataset
+
+
+def create_weighted_sampler(dataset):
+    """
+    Create a WeightedRandomSampler for handling imbalanced datasets.
+    
+    Args:
+        dataset: PyTorch dataset with .targets attribute
+    
+    Returns:
+        WeightedRandomSampler instance
+    """
+    # Get class labels
+    targets = torch.tensor(dataset.targets)
+    
+    # Calculate class weights (inverse frequency)
+    class_counts = torch.bincount(targets)
+    num_samples = len(targets)
+    class_weights = num_samples / (len(class_counts) * class_counts.float())
+    
+    # Assign weight to each sample based on its class
+    sample_weights = class_weights[targets]
+    
+    # Create sampler
+    sampler = WeightedRandomSampler(
+        weights=sample_weights,
+        num_samples=len(sample_weights),
+        replacement=True
+    )
+    
+    logging.info(f'=> Created weighted sampler with class weights: {class_weights.tolist()}')
+    return sampler
 
 
 def _build_imagenet_dataset(cfg, is_train, dataset_type='default'):
@@ -70,13 +103,21 @@ def build_dataloader(cfg, is_train=True, distributed=False, dataset_type='defaul
         if is_train and cfg.DATASET.SAMPLER == 'repeated_aug':
             logging.info('=> use repeated aug sampler')
             sampler = RASampler(dataset, shuffle=shuffle)
+        elif is_train and cfg.DATASET.SAMPLER == 'weighted':
+            logging.info('=> use weighted sampler')
+            sampler = create_weighted_sampler(dataset)
         else:
             sampler = torch.utils.data.distributed.DistributedSampler(
                 dataset, shuffle=shuffle
             )
         shuffle = False
     else:
-        sampler = None
+        if is_train and cfg.DATASET.SAMPLER == 'weighted':
+            logging.info('=> use weighted sampler')
+            sampler = create_weighted_sampler(dataset)
+            shuffle = False
+        else:
+            sampler = None
 
     if cfg.AUG.TIMM_AUG.USE_LOADER and is_train:
         logging.info('=> use timm loader for training')
