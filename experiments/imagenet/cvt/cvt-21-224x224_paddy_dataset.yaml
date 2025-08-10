@@ -33,7 +33,7 @@ MODEL:
 AUG:
   MIXUP_PROB: 1.0
   MIXUP: 0.8
-  MIXCUT: 1.0
+  MIXCUT: 0.0
   TIMM_AUG:
     USE_LOADER: false
     RE_COUNT: 1
