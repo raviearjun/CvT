@@ -6,7 +6,7 @@ AMP:
 
 MODEL:
   NAME: cls_cvt
-  PRETRAINED: "/kaggle/input/cvt-21-224x224-in-1kk/pytorch/default/1"
+  PRETRAINED: "/kaggle/working/CvT/CvT-21-224x224-IN-1k.pth"
   NUM_CLASSES: 5
   SPEC:
     INIT: "trunc_norm"
