@@ -11,10 +11,10 @@ from pathlib import Path
 def setup_directories():
     """Buat direktori yang diperlukan"""
     directories = [
-        '/content/CvT/paddy_disease_dataset/train',
-        '/content/CvT/paddy_disease_dataset/val',
-        '/content/CvT/paddy_disease_dataset/test',
-        '/content/output'
+        '/kaggle/working/CvT/paddy_disease_dataset/train',
+        '/kaggle/working/CvT/paddy_disease_dataset/val',
+        '/kaggle/working/CvT/paddy_disease_dataset/test',
+        '/kaggle/working/output'
     ]
     
     for dir_path in directories:
@@ -23,8 +23,8 @@ def setup_directories():
 
 def verify_dataset_exists():
     """Verifikasi apakah dataset sudah diisi"""
-    dataset_root = '/content/CvT/paddy_disease_dataset'
-    weights_file = '/content/CvT/CvT-21-224x224-IN-1k.pth'
+    dataset_root = '/kaggle/working/CvT/paddy_disease_dataset'
+    weights_file = '/kaggle/working/CvT/CvT-21-224x224-IN-1k.pth'
     
     # Check dataset
     if not os.path.exists(dataset_root):
@@ -68,7 +68,7 @@ def verify_dataset_exists():
     # Check weights
     if not os.path.exists(weights_file):
         print("❌ Pretrained weights not found!")
-        print("   Please ensure: CvT-21-224x224-IN-1k.pth exists in /content/CvT/")
+        print("   Please ensure: CvT-21-224x224-IN-1k.pth exists in /kaggle/working/CvT/")
         return False
     
     print("✓ Pretrained weights found")
@@ -76,7 +76,7 @@ def verify_dataset_exists():
 
 def verify_dataset_structure():
     """Verifikasi struktur dataset"""
-    dataset_root = '/content/CvT/paddy_disease_dataset'
+    dataset_root = '/kaggle/working/CvT/paddy_disease_dataset'
     
     for split in ['train', 'val', 'test']:
         split_path = os.path.join(dataset_root, split)
@@ -154,7 +154,7 @@ def main():
         if not success:
             print("\n❌ Setup verification failed!")
             print("\nPlease:")
-            print("1. Download and place your dataset in: /content/CvT/paddy_disease_dataset/")
+            print("1. Download and place your dataset in: /kaggle/working/CvT/paddy_disease_dataset/")
             print("2. Download pretrained weights: CvT-21-224x224-IN-1k.pth to /content/CvT/")
             print("3. Run this script again")
             return
@@ -176,3 +176,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
