@@ -1,4 +1,4 @@
-OUTPUT_DIR: "/content/output/"
+OUTPUT_DIR: "/kaggle/working/"
 WORKERS: 4
 PRINT_FREQ: 50
 AMP:
@@ -6,7 +6,7 @@ AMP:
 
 MODEL:
   NAME: cls_cvt
-  PRETRAINED: "/content/CvT/CvT-21-224x224-IN-1k.pth"
+  PRETRAINED: "/kaggle/input/cvt-21-224x224-in-1kk/pytorch/default/1"
   NUM_CLASSES: 5
   SPEC:
     INIT: "trunc_norm"
@@ -54,7 +54,7 @@ CUDNN:
 DATASET:
   DATASET: "imagenet"
   DATA_FORMAT: "jpg"
-  ROOT: "/content/CvT/paddy_disease_dataset/"
+  ROOT: "/kaggle/working/dataset/content/drive/MyDrive/Train"
   TEST_SET: "test"
   VAL_SET: "val"
   TRAIN_SET: "train"
@@ -69,7 +69,7 @@ TRAIN:
   LR: 0.0005
   IMAGE_SIZE: [224, 224]
   BEGIN_EPOCH: 0
-  END_EPOCH: 30
+  END_EPOCH: 100
   LR_SCHEDULER:
     METHOD: "timm"
     ARGS:
