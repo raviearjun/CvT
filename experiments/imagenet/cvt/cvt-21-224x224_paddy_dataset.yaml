@@ -54,7 +54,7 @@ CUDNN:
 DATASET:
   DATASET: "imagenet"
   DATA_FORMAT: "jpg"
-  ROOT: "/kaggle/working/dataset/content/drive/MyDrive/Train"
+  ROOT: "/kaggle/working/CvT/paddy_disease_dataset/"
   TEST_SET: "test"
   VAL_SET: "val"
   TRAIN_SET: "train"
