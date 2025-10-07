@@ -9,7 +9,7 @@ import torch
 from timm.data import Mixup
 from torch.amp import autocast
 
-from core.evaluate import accuracy
+from core.evaluate import accuracy, f1_and_accuracy
 from utils.comm import comm
 
 
@@ -20,6 +20,7 @@ def train_one_epoch(config, train_loader, model, criterion, optimizer, epoch,
     losses = AverageMeter()
     top1 = AverageMeter()
     top5 = AverageMeter()
+    f1_meter = AverageMeter()  # Add F1 score meter
 
     logging.info('=> switch to train mode')
     model.train()
@@ -75,8 +76,13 @@ def train_one_epoch(config, train_loader, model, criterion, optimizer, epoch,
 
         if mixup_fn:
             y = torch.argmax(y, dim=1)
-        prec1, prec5 = accuracy(outputs, y, (1, 5))
-
+        
+        # Calculate both F1 score and accuracy (F1 as primary metric)
+        f1_average = getattr(config.TRAIN, 'F1_AVERAGE', 'macro')
+        f1_score, (prec1, prec5) = f1_and_accuracy(outputs, y, (1, 5), f1_average=f1_average)
+        
+        # Update meters
+        f1_meter.update(f1_score, x.size(0))
         top1.update(prec1, x.size(0))
         top5.update(prec5, x.size(0))
 
@@ -90,12 +96,13 @@ def train_one_epoch(config, train_loader, model, criterion, optimizer, epoch,
                   'Speed {speed:.1f} samples/s\t' \
                   'Data {data_time.val:.3f}s ({data_time.avg:.3f}s)\t' \
                   'Loss {loss.val:.5f} ({loss.avg:.5f})\t' \
+                  'F1-Score {f1.val:.3f} ({f1.avg:.3f})\t' \
                   'Accuracy@1 {top1.val:.3f} ({top1.avg:.3f})\t' \
                   'Accuracy@5 {top5.val:.3f} ({top5.avg:.3f})\t'.format(
                       epoch, i, len(train_loader),
                       batch_time=batch_time,
                       speed=x.size(0)/batch_time.val,
-                      data_time=data_time, loss=losses, top1=top1, top5=top5)
+                      data_time=data_time, loss=losses, f1=f1_meter, top1=top1, top5=top5)
             logging.info(msg)
 
         torch.cuda.synchronize()
@@ -104,7 +111,8 @@ def train_one_epoch(config, train_loader, model, criterion, optimizer, epoch,
         writer = writer_dict['writer']
         global_steps = writer_dict['train_global_steps']
         writer.add_scalar('train_loss', losses.avg, global_steps)
-        writer.add_scalar('train_top1', top1.avg, global_steps)
+        writer.add_scalar('train_f1', f1_meter.avg, global_steps)  # F1 as primary metric
+        writer.add_scalar('train_top1', top1.avg, global_steps)    # Keep accuracy for comparison
         writer_dict['train_global_steps'] = global_steps + 1
 
 
@@ -116,6 +124,7 @@ def test(config, val_loader, model, criterion, output_dir, tb_log_dir,
     losses = AverageMeter()
     top1 = AverageMeter()
     top5 = AverageMeter()
+    f1_meter = AverageMeter()  # Add F1 score meter
 
     logging.info('=> switch to eval mode')
     model.eval()
@@ -138,7 +147,12 @@ def test(config, val_loader, model, criterion, output_dir, tb_log_dir,
         # measure accuracy and record loss
         losses.update(loss.item(), x.size(0))
 
-        prec1, prec5 = accuracy(outputs, y, (1, 5))
+        # Calculate both F1 score and accuracy (F1 as primary metric)
+        f1_average = getattr(config.TRAIN, 'F1_AVERAGE', 'macro')
+        f1_score, (prec1, prec5) = f1_and_accuracy(outputs, y, (1, 5), f1_average=f1_average)
+        
+        # Update meters
+        f1_meter.update(f1_score, x.size(0))
         top1.update(prec1, x.size(0))
         top5.update(prec5, x.size(0))
 
@@ -148,9 +162,9 @@ def test(config, val_loader, model, criterion, output_dir, tb_log_dir,
 
     logging.info('=> synchronize...')
     comm.synchronize()
-    top1_acc, top5_acc, loss_avg = map(
+    top1_acc, top5_acc, f1_avg, loss_avg = map(
         _meter_reduce if distributed else lambda x: x.avg,
-        [top1, top5, losses]
+        [top1, top5, f1_meter, losses]
     )
 
     if real_labels and not distributed:
@@ -171,11 +185,12 @@ def test(config, val_loader, model, criterion, output_dir, tb_log_dir,
     if comm.is_main_process():
         msg = '=> TEST:\t' \
             'Loss {loss_avg:.4f}\t' \
+            'F1-Score {f1:.3f}%\t' \
             'Error@1 {error1:.3f}%\t' \
             'Error@5 {error5:.3f}%\t' \
             'Accuracy@1 {top1:.3f}%\t' \
             'Accuracy@5 {top5:.3f}%\t'.format(
-                loss_avg=loss_avg, top1=top1_acc,
+                loss_avg=loss_avg, f1=f1_avg, top1=top1_acc,
                 top5=top5_acc, error1=100-top1_acc,
                 error5=100-top5_acc
             )
@@ -185,13 +200,15 @@ def test(config, val_loader, model, criterion, output_dir, tb_log_dir,
         writer = writer_dict['writer']
         global_steps = writer_dict['valid_global_steps']
         writer.add_scalar('valid_loss', loss_avg, global_steps)
-        writer.add_scalar('valid_top1', top1_acc, global_steps)
+        writer.add_scalar('valid_f1', f1_avg, global_steps)      # F1 as primary metric
+        writer.add_scalar('valid_top1', top1_acc, global_steps)  # Keep accuracy for comparison
         writer_dict['valid_global_steps'] = global_steps + 1
 
     logging.info('=> switch to train mode')
     model.train()
 
-    return top1_acc
+    # Return F1 score as primary metric for model selection, but also return accuracy for compatibility
+    return f1_avg, top1_acc
 
 
 def _meter_reduce(meter):

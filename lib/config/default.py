@@ -119,6 +119,10 @@ _C.TRAIN.SHUFFLE = True
 
 _C.TRAIN.EVAL_BEGIN_EPOCH = 0
 
+# Evaluation Metrics Configuration
+_C.TRAIN.USE_F1_AS_PRIMARY = True  # Use F1 score as primary metric for model selection
+_C.TRAIN.F1_AVERAGE = 'macro'      # F1 averaging method: 'macro', 'weighted', 'micro'
+
 _C.TRAIN.DETECT_ANOMALY = False
 
 _C.TRAIN.CLIP_GRAD_NORM = 0.0

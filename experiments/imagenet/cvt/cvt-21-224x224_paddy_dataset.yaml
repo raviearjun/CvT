@@ -70,6 +70,10 @@ TRAIN:
   IMAGE_SIZE: [224, 224]
   BEGIN_EPOCH: 0
   END_EPOCH: 100
+  # F1 Score Configuration - Use F1 as primary evaluation metric
+  USE_F1_AS_PRIMARY: true
+  F1_AVERAGE: "macro" # Recommended for cultural classification task
+  EVAL_BEGIN_EPOCH: 0
   LR_SCHEDULER:
     METHOD: "timm"
     ARGS:

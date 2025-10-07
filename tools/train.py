@@ -147,14 +147,21 @@ def main():
         val_start = time.time()
 
         if epoch >= config.TRAIN.EVAL_BEGIN_EPOCH:
-            perf = test(
+            # Get both F1 score (primary) and accuracy (secondary) from test function
+            f1_perf, acc_perf = test(
                 config, valid_loader, model, criterion_eval,
                 final_output_dir, tb_log_dir, writer_dict,
                 args.distributed
             )
 
+            # Use F1 score as primary metric for model selection
+            perf = f1_perf
             best_model = (perf > best_perf)
             best_perf = perf if best_model else best_perf
+            
+            # Log both metrics for comparison
+            logging.info(f'=> Current F1-Score: {f1_perf:.3f}%, Accuracy: {acc_perf:.3f}%')
+            logging.info(f'=> Best F1-Score so far: {best_perf:.3f}%')
 
         logging.info(
             '=> {} validate end, duration: {:.2f}s'
