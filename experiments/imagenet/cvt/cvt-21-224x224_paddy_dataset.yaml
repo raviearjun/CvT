@@ -31,8 +31,8 @@ MODEL:
     PADDING_Q: [1, 1, 1]
     STRIDE_Q: [1, 1, 1]
 AUG:
-  MIXUP_PROB: 0.0
-  MIXUP: 0.0
+  MIXUP_PROB: 1.0
+  MIXUP: 0.3
   MIXCUT: 0.0
   TIMM_AUG:
     USE_LOADER: false
